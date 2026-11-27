@@ -239,7 +239,7 @@ function DataSection() {
     try {
       const backup = parseBackup(JSON.parse(await file.text()));
       const ok = window.confirm(
-        `Import ${backup.transactions.length} records and ${backup.tags.length} tags?\n\nRecords already here are kept; matching ones are updated.`,
+        `Import ${backup.transactions.length} expenses, ${backup.income.length} income entries and ${backup.tags.length} tags?\n\nRecords already here are kept; matching ones are updated.`,
       );
       if (!ok) return;
       await importBackup(backup);

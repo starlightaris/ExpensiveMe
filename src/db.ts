@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { DEFAULT_SETTINGS, THEMES, type Settings, type Tag, type Theme, type Txn } from './types';
+import { DEFAULT_SETTINGS, INCOME_SOURCES, THEMES, type Income, type IncomeSource, type Settings, type Tag, type Theme, type Txn } from './types';
 import { round2 } from './lib/calc';
 import { uid } from './lib/format';
 
@@ -13,6 +13,7 @@ class ExpensiveDB extends Dexie {
   transactions!: Table<Txn, string>;
   tags!: Table<Tag, string>;
   settings!: Table<SettingRow, string>;
+  income!: Table<Income, string>;
 
   constructor() {
     super('expensiveme');
@@ -21,6 +22,8 @@ class ExpensiveDB extends Dexie {
       tags: 'id, order',
       settings: 'key',
     });
+    // v2: money coming in, kept in its own table
+    this.version(2).stores({ income: 'id, date' });
     this.on('populate', (tx) => {
       tx.table('tags').bulkAdd(defaultTags());
       tx.table('settings').add({ key: 'settings', value: DEFAULT_SETTINGS });
@@ -70,6 +73,10 @@ export function useAllTxns(): Txn[] | undefined {
   return useLiveQuery(() => db.transactions.toArray(), []);
 }
 
+export function useIncome(from: string, to: string): Income[] | undefined {
+  return useLiveQuery(() => db.income.where('date').between(from, to, true, true).toArray(), [from, to]);
+}
+
 /* ---------- writes ---------- */
 
 export async function saveSettings(patch: Partial<Settings>) {
@@ -87,6 +94,14 @@ export async function saveTxn(t: Txn) {
 
 export async function deleteTxn(id: string) {
   await db.transactions.delete(id);
+}
+
+export async function saveIncome(i: Income) {
+  await db.income.put({ ...i, updatedAt: Date.now() });
+}
+
+export async function deleteIncome(id: string) {
+  await db.income.delete(id);
 }
 
 export async function saveTag(tag: Tag) {
@@ -107,8 +122,9 @@ export async function deleteTag(id: string) {
 }
 
 export async function eraseAll() {
-  await db.transaction('rw', db.tags, db.transactions, db.settings, async () => {
+  await db.transaction('rw', [db.tags, db.transactions, db.settings, db.income], async () => {
     await db.transactions.clear();
+    await db.income.clear();
     await db.tags.clear();
     await db.settings.clear();
     await db.tags.bulkAdd(defaultTags());
@@ -125,13 +141,16 @@ export interface Backup {
   settings: Settings;
   tags: Tag[];
   transactions: Txn[];
+  /** absent in backups made before income existed */
+  income: Income[];
 }
 
 export async function exportBackup(): Promise<Backup> {
-  const [settings, tags, transactions] = await Promise.all([
+  const [settings, tags, transactions, income] = await Promise.all([
     db.settings.get('settings'),
     db.tags.toArray(),
     db.transactions.toArray(),
+    db.income.toArray(),
   ]);
   return {
     app: 'expensiveme',
@@ -140,6 +159,7 @@ export async function exportBackup(): Promise<Backup> {
     settings: settings?.value ?? DEFAULT_SETTINGS,
     tags,
     transactions,
+    income,
   };
 }
 
@@ -188,6 +208,20 @@ export function parseBackup(raw: unknown): Backup {
     })
     .filter((t) => t.id && ISO_DATE.test(t.date) && t.baseAmount >= 0);
 
+  const sourceIds = INCOME_SOURCES.map((x) => x.id) as string[];
+  const income: Income[] = (Array.isArray(r.income) ? (r.income as unknown[]) : [])
+    .filter((t): t is Record<string, unknown> => !!t && typeof t === 'object')
+    .map((t) => ({
+      id: str(t.id, 64),
+      date: str(t.date, 10),
+      amount: round2(numOr(t.amount, 0)),
+      source: (sourceIds.includes(t.source as string) ? t.source : 'other') as IncomeSource,
+      note: str(t.note, 300),
+      createdAt: numOr(t.createdAt, Date.now()),
+      updatedAt: numOr(t.updatedAt, Date.now()),
+    }))
+    .filter((t) => t.id && ISO_DATE.test(t.date) && t.amount > 0);
+
   const s = (r.settings ?? {}) as Record<string, unknown>;
   const settings: Settings = {
     currency: str(s.currency, 6) || DEFAULT_SETTINGS.currency,
@@ -195,12 +229,12 @@ export function parseBackup(raw: unknown): Backup {
     theme: THEMES.includes(s.theme as Theme) ? (s.theme as Theme) : DEFAULT_SETTINGS.theme,
   };
 
-  return { app: 'expensiveme', version: 1, exportedAt: str(r.exportedAt, 40), settings, tags, transactions };
+  return { app: 'expensiveme', version: 1, exportedAt: str(r.exportedAt, 40), settings, tags, transactions, income };
 }
 
 /** Merge a backup into the current data: records with the same id are replaced, others added. */
 export async function importBackup(b: Backup) {
-  await db.transaction('rw', db.tags, db.transactions, db.settings, async () => {
+  await db.transaction('rw', [db.tags, db.transactions, db.settings, db.income], async () => {
     // A tag with the same name but a different id (e.g. default tags created on another
     // device) is mapped onto the existing tag instead of creating a duplicate.
     const existing = await db.tags.toArray();
@@ -216,6 +250,7 @@ export async function importBackup(b: Backup) {
     await db.transactions.bulkPut(
       b.transactions.map((t) => ({ ...t, tagIds: [...new Set(t.tagIds.map((id) => remap.get(id) ?? id))] })),
     );
+    await db.income.bulkPut(b.income);
     await db.settings.put({ key: 'settings', value: b.settings });
   });
 }

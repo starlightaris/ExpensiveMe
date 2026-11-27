@@ -3,16 +3,18 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AddSheet, type Draft } from './components/AddSheet';
 import { CalculatorSheet } from './components/CalculatorSheet';
 import { Dashboard } from './components/Dashboard';
+import { IncomeSheet } from './components/IncomeSheet';
+import { IncomeTab } from './components/IncomeTab';
 import { Settings } from './components/Settings';
 import { ToastHost } from './components/Toast';
 import { TxnList, type ListFilter } from './components/TxnList';
 import { useThemeSetting } from './db';
 import { periodAround, today, type Period } from './lib/dates';
 import { applyTheme, watchSystemTheme } from './lib/theme';
-import type { Txn } from './types';
+import type { Income, Txn } from './types';
 
-type Tab = 'home' | 'list' | 'settings';
-const TABS: Tab[] = ['home', 'list', 'settings'];
+type Tab = 'home' | 'list' | 'income' | 'settings';
+const TABS: Tab[] = ['home', 'list', 'income', 'settings'];
 
 function readTab(): Tab {
   const t = window.location.hash.replace(/^#\/?/, '') as Tab;
@@ -25,6 +27,9 @@ export default function App() {
   const [filter, setFilter] = useState<ListFilter>({ who: 'all', tag: null, q: '' });
   const [draft, setDraft] = useState<Draft | null>(null);
   const [calcOpen, setCalcOpen] = useState(false);
+  const [incomePeriod, setIncomePeriod] = useState<Period>(() => periodAround('month', today()));
+  /** null = closed, {} = new entry, {income} = editing */
+  const [incomeDraft, setIncomeDraft] = useState<{ income?: Income } | null>(null);
   const theme = useThemeSetting();
 
   useEffect(() => {
@@ -50,13 +55,14 @@ export default function App() {
 
   const closeDraft = useCallback(() => setDraft(null), []);
   const closeCalc = useCallback(() => setCalcOpen(false), []);
+  const closeIncome = useCallback(() => setIncomeDraft(null), []);
   const duplicate = useCallback((t: Txn) => {
     const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = t;
     // let the sheet close before opening the new one
     setTimeout(() => setDraft({ prefill: { ...rest, date: today() } }), 0);
   }, []);
 
-  const title = tab === 'home' ? 'ExpensiveMe' : tab === 'list' ? 'Transactions' : 'Settings';
+  const title = { home: 'ExpensiveMe', list: 'Transactions', income: 'Income', settings: 'Settings' }[tab];
 
   return (
     <div className="mx-auto min-h-dvh max-w-md">
@@ -86,14 +92,22 @@ export default function App() {
           />
         )}
         {tab === 'list' && <TxnList period={period} onPeriod={setPeriod} filter={filter} onFilter={setFilter} onEdit={(t) => setDraft({ txn: t })} />}
+        {tab === 'income' && (
+          <IncomeTab
+            period={incomePeriod}
+            onPeriod={setIncomePeriod}
+            onAdd={() => setIncomeDraft({})}
+            onEdit={(income) => setIncomeDraft({ income })}
+          />
+        )}
         {tab === 'settings' && <Settings />}
       </main>
 
       {/* Add button */}
       {tab !== 'settings' && (
         <button
-          onClick={() => setDraft({})}
-          aria-label="Add expense"
+          onClick={() => (tab === 'income' ? setIncomeDraft({}) : setDraft({}))}
+          aria-label={tab === 'income' ? 'Add income' : 'Add expense'}
           className="fixed right-[max(1rem,calc(50%-14rem+1rem))] bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-30 grid size-14 place-items-center rounded-full bg-accent text-accent-ink shadow-lg active:scale-95"
         >
           <PlusIcon />
@@ -102,14 +116,16 @@ export default function App() {
 
       {/* Tab bar */}
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur" aria-label="Main">
-        <div className="mx-auto grid h-16 max-w-md grid-cols-3">
+        <div className="mx-auto grid h-16 max-w-md grid-cols-4">
           <TabBtn active={tab === 'home'} onClick={() => go('home')} label="Home" icon={<HomeIcon />} />
           <TabBtn active={tab === 'list'} onClick={() => go('list')} label="Transactions" icon={<ListIcon />} />
+          <TabBtn active={tab === 'income'} onClick={() => go('income')} label="Income" icon={<WalletIcon />} />
           <TabBtn active={tab === 'settings'} onClick={() => go('settings')} label="Settings" icon={<GearIcon />} />
         </div>
       </nav>
 
       {draft && <AddSheet key={draft.txn?.id ?? 'new'} draft={draft} onClose={closeDraft} onDuplicate={duplicate} />}
+      {incomeDraft && <IncomeSheet key={incomeDraft.income?.id ?? 'new'} income={incomeDraft.income} onClose={closeIncome} />}
       {calcOpen && (
         <CalculatorSheet
           onClose={closeCalc}
@@ -169,6 +185,12 @@ const HomeIcon = () => (
 const ListIcon = () => (
   <svg {...svg} aria-hidden>
     <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+  </svg>
+);
+const WalletIcon = () => (
+  <svg {...svg} aria-hidden>
+    <rect x="3" y="6" width="18" height="14" rx="2.5" />
+    <path d="M6.5 6 15 3.2a1 1 0 0 1 1.3.9V6M16.5 13h.01" />
   </svg>
 );
 const GearIcon = () => (

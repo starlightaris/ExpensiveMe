@@ -11,9 +11,12 @@ const KINDS: { kind: PeriodKind; label: string }[] = [
 interface Props {
   period: Period;
   onChange: (p: Period) => void;
+  /** which period types to offer (default: all) */
+  kinds?: PeriodKind[];
 }
 
-export function PeriodPicker({ period, onChange }: Props) {
+export function PeriodPicker({ period, onChange, kinds }: Props) {
+  const options = kinds ? KINDS.filter((k) => kinds.includes(k.kind)) : KINDS;
   const shiftable = period.kind === 'week' || period.kind === 'month' || period.kind === 'year';
   const current = shiftable && periodAround(period.kind, today()).from === period.from;
 
@@ -28,8 +31,13 @@ export function PeriodPicker({ period, onChange }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-5 rounded-xl bg-surface-2 p-1" role="tablist" aria-label="Period">
-        {KINDS.map(({ kind, label }) => (
+      <div
+        className="grid rounded-xl bg-surface-2 p-1"
+        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+        role="tablist"
+        aria-label="Period"
+      >
+        {options.map(({ kind, label }) => (
           <button
             key={kind}
             role="tab"

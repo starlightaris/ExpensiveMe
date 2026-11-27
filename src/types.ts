@@ -27,7 +27,26 @@ export interface Txn {
   updatedAt: number;
 }
 
-export type Theme = 'light' | 'dark' | 'system';
+export type IncomeSource = 'salary' | 'home' | 'other';
+export const INCOME_SOURCES: { id: IncomeSource; label: string; emoji: string }[] = [
+  { id: 'salary', label: 'Salary', emoji: '💼' },
+  { id: 'home', label: 'From home', emoji: '🏠' },
+  { id: 'other', label: 'Other', emoji: '✨' },
+];
+
+/** Money coming in. Kept apart from expenses: it never affects lifestyle cost. */
+export interface Income {
+  id: string;
+  /** Local calendar date, YYYY-MM-DD */
+  date: string;
+  amount: number;
+  source: IncomeSource;
+  note: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type Theme ='light' | 'dark' | 'system';
 export const THEMES: Theme[] = ['light', 'dark', 'system'];
 
 export interface Settings {
