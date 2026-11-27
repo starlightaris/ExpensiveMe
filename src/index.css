@@ -1,56 +1,107 @@
 @import 'tailwindcss';
 
+/*
+  Palette: sage #ABC270 · honey #FEC868 · peach #FDA769 · cocoa #473C33,
+  on warm cream neutrals. Few colours, each with one job:
+    cocoa  - text, primary actions, "your money" in charts
+    peach  - "covered by someone else"
+    honey  - selection (picked chips, active tab)
+    sage   - positive / on (toggles, money left over)
+*/
 :root {
   color-scheme: light;
-  --bg: #f6f6f4;
-  --surface: #ffffff;
-  --surface-2: #efefec;
-  --text: #0b0b0b;
-  --text-2: #52514e;
-  --muted: #7d7c77;
-  --border: #e4e3df;
-  /* chart series: slot 1 = your money, slot 2 = covered by others */
-  --mine: #2a78d6;
-  --covered: #eb6834;
-  --danger: #c93b3a;
-  --accent: #2a78d6;
-  --accent-ink: #ffffff;
+  --bg: #f7f1e6;
+  --surface: #fffcf6;
+  --surface-2: #efe7d9;
+  --text: #473c33;
+  --text-2: #75685c;
+  --muted: #9a8d80;
+  --border: #e8decf;
+  /* chart series: brown/peach pass colour-blind separation (validated) */
+  --mine: #473c33;
+  --covered: #f5975a;
+  --positive: #abc270;
+  --danger: #c2593f;
+  --accent: #473c33;
+  --accent-ink: #fff8ec;
+  --pick: #fec868;
+  --pick-ink: #473c33;
+  /* the dark "hero" summary cards */
+  --hero-bg: #473c33;
+  --hero-text: #fff8ec;
+  --hero-text-2: #d6c8b4;
+  --hero-surface: #5a4d42;
+  --hero-surface-2: #3b322a;
+  --hero-line: #5d5045;
 }
 
 /* Light is the default. Dark applies when chosen in Settings,
-   or when "System" is chosen and the device is in dark mode. */
+   or when "Auto" is chosen and the device is in dark mode. */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #121211;
-  --surface: #1a1a19;
-  --surface-2: #262624;
-  --text: #f0efec;
-  --text-2: #c3c2b7;
-  --muted: #8f8e86;
-  --border: #2f2f2c;
-  --mine: #3987e5;
-  --covered: #d95926;
-  --danger: #e66767;
-  --accent: #3987e5;
-  --accent-ink: #ffffff;
+  --bg: #221d19;
+  --surface: #2c2621;
+  --surface-2: #3a322b;
+  --text: #f3eadb;
+  --text-2: #cbbca8;
+  --muted: #95877a;
+  --border: #3e352d;
+  --mine: #efe4d2;
+  --covered: #e8864a;
+  --positive: #abc270;
+  --danger: #e07a62;
+  --accent: #fec868;
+  --accent-ink: #2a231d;
+  --pick: #fec868;
+  --pick-ink: #2a231d;
+  --hero-bg: #3a322b;
+  --hero-text: #f3eadb;
+  --hero-text-2: #cbbca8;
+  --hero-surface: #4a4037;
+  --hero-surface-2: #2c2621;
+  --hero-line: #4f453b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme='system'] {
     color-scheme: dark;
-    --bg: #121211;
-    --surface: #1a1a19;
-    --surface-2: #262624;
-    --text: #f0efec;
-    --text-2: #c3c2b7;
-    --muted: #8f8e86;
-    --border: #2f2f2c;
-    --mine: #3987e5;
-    --covered: #d95926;
-    --danger: #e66767;
-    --accent: #3987e5;
-    --accent-ink: #ffffff;
-  }
+    --bg: #221d19;
+    --surface: #2c2621;
+    --surface-2: #3a322b;
+    --text: #f3eadb;
+    --text-2: #cbbca8;
+    --muted: #95877a;
+    --border: #3e352d;
+    --mine: #efe4d2;
+    --covered: #e8864a;
+    --positive: #abc270;
+    --danger: #e07a62;
+    --accent: #fec868;
+    --accent-ink: #2a231d;
+    --pick: #fec868;
+    --pick-ink: #2a231d;
+    --hero-bg: #3a322b;
+    --hero-text: #f3eadb;
+    --hero-text-2: #cbbca8;
+    --hero-surface: #4a4037;
+    --hero-surface-2: #2c2621;
+    --hero-line: #4f453b;
+}
+}
+
+/* Summary cards: re-point the tokens so everything inside adapts automatically */
+.hero {
+  background: var(--hero-bg);
+  color: var(--hero-text);
+  --text: var(--hero-text);
+  --text-2: var(--hero-text-2);
+  --muted: var(--hero-text-2);
+  --surface: var(--hero-surface);
+  --surface-2: var(--hero-surface-2);
+  --border: var(--hero-line);
+  --mine: #efe4d2;
+  --covered: #f5975a;
+  --accent: #fec868;
 }
 
 @theme inline {
@@ -63,11 +114,18 @@
   --color-line: var(--border);
   --color-mine: var(--mine);
   --color-covered: var(--covered);
+  --color-positive: var(--positive);
   --color-danger: var(--danger);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji',
+  --color-pick: var(--pick);
+  --color-pick-ink: var(--pick-ink);
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji';
+  /* soft, warm, barely-there elevation instead of grey drop shadows */
+  --shadow-sm: 0 1px 0 rgb(71 60 51 / 0.05), 0 1px 2px rgb(71 60 51 / 0.04);
+  --shadow-lg: 0 6px 20px -6px rgb(71 60 51 / 0.35);
+  --shadow-2xl: 0 -8px 30px -10px rgb(71 60 51 / 0.25);
 }
 
 html,
@@ -151,4 +209,10 @@ input[type='date'] {
 }
 input[type='date']::-webkit-date-and-time-value {
   text-align: left;
+}
+
+/* keyboard focus in the palette's honey instead of the browser default */
+:focus-visible {
+  outline: 2px solid var(--pick);
+  outline-offset: 2px;
 }

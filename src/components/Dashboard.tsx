@@ -6,6 +6,8 @@ import { money, pct } from '../lib/format';
 import { byPayer, byTag, hasMultiTag, timeBuckets, totals } from '../lib/stats';
 import { PeriodPicker } from './PeriodPicker';
 import { Dot, TrendChart } from './TrendChart';
+import { ChevronDown } from 'lucide-react';
+import { TagIcon } from '../lib/icons';
 
 interface Props {
   period: Period;
@@ -49,7 +51,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
       <PeriodPicker period={period} onChange={onPeriod} />
 
       {/* Hero */}
-      <section className="rounded-3xl bg-surface p-5 shadow-sm">
+      <section className="hero rounded-3xl p-5">
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-sm text-ink-2">{view === 'lifestyle' ? 'Lifestyle cost' : 'Out of pocket'}</p>
@@ -82,7 +84,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
               <button className="text-left" onClick={() => setShowPayers((s) => !s)} disabled={t.covered === 0} aria-expanded={showPayers}>
                 <div className="text-ink-2">
                   <Dot c="covered" />
-                  Covered by others {t.covered > 0 && <span className="text-xs text-accent">{showPayers ? '▴' : '▾'}</span>}
+                  Covered by others {t.covered > 0 && <ChevronDown size={14} className={`inline transition ${showPayers ? 'rotate-180' : ''}`} aria-hidden />}
                 </div>
                 <div className="font-semibold">
                   {money(t.covered, cur)} <span className="font-normal text-muted">{pct(t.covered, t.lifestyle)}</span>
@@ -112,8 +114,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
 
       {txns && txns.length === 0 ? (
         <section className="rounded-3xl border border-dashed border-line p-8 text-center">
-          <p className="text-3xl">🌱</p>
-          <p className="mt-2 font-medium">Nothing recorded in this period</p>
+          <p className="font-medium">Nothing recorded in this period</p>
           <button onClick={onAdd} className="mt-4 min-h-11 rounded-full bg-accent px-5 font-semibold text-accent-ink">
             Add an expense
           </button>
@@ -121,7 +122,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
       ) : (
         <>
           {/* By tag */}
-          <section className="rounded-3xl bg-surface p-5 shadow-sm">
+          <section className="rounded-3xl border border-line bg-surface p-5">
             <h2 className="mb-3 font-semibold">Where it goes</h2>
             <ul className="space-y-3">
               {tagRows.map((r) => {
@@ -130,8 +131,8 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
                   <li key={r.tag?.id ?? 'none'}>
                     <button className="w-full text-left" onClick={() => onOpenTag(r.tag?.id ?? null)}>
                       <div className="tabular flex items-baseline justify-between gap-2 text-sm">
-                        <span className="truncate">
-                          <span className="mr-1.5">{r.tag?.emoji ?? '·'}</span>
+                        <span className="flex min-w-0 items-center gap-2 truncate">
+                          <TagIcon name={r.tag?.icon} size={16} className="shrink-0 text-ink-2" />
                           {r.tag?.name ?? 'Untagged'}
                           <span className="ml-1.5 text-xs text-muted">×{r.count}</span>
                         </span>
@@ -140,7 +141,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
                           <span className="text-xs text-muted">{pct(v, headline)}</span>
                         </span>
                       </div>
-                      <div className="mt-1.5 flex h-2 gap-[2px]" style={{ width: `${(v / tagMax) * 100}%` }}>
+                      <div className="mt-1.5 flex h-1.5 gap-[2px]" style={{ width: `${(v / tagMax) * 100}%` }}>
                         {r.mine > 0 && <div className="h-full rounded-l bg-mine last:rounded-r" style={{ flexGrow: r.mine }} />}
                         {showCovered && r.covered > 0 && (
                           <div className="h-full rounded-r bg-covered first:rounded-l" style={{ flexGrow: r.covered }} />
@@ -158,7 +159,7 @@ export function Dashboard({ period, onPeriod, onAdd, onOpenTag }: Props) {
 
           {/* Over time */}
           {trend.buckets.length > 1 && (
-            <section className="rounded-3xl bg-surface p-5 shadow-sm">
+            <section className="rounded-3xl border border-line bg-surface p-5">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="font-semibold">{trend.unit === 'day' ? 'Day by day' : 'Month by month'}</h2>
                 <button onClick={() => setShowTable((s) => !s)} className="min-h-9 px-2 text-sm text-accent">

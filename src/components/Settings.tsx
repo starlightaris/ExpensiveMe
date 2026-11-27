@@ -1,3 +1,5 @@
+import { ArrowDown, ArrowUp, ShieldCheck, Trash2, TriangleAlert } from 'lucide-react';
+import { DEFAULT_TAG_ICON, TAG_ICON_KEYS, TagIcon } from '../lib/icons';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { db, deleteTag, eraseAll, exportBackup, importBackup, parseBackup, saveSettings, saveTag, useSettings, useTags } from '../db';
 import { uid } from '../lib/format';
@@ -69,8 +71,9 @@ export function Settings() {
 }
 
 function TagManager({ tags }: { tags: Tag[] }) {
-  const [emoji, setEmoji] = useState('');
+  const [icon, setIcon] = useState(DEFAULT_TAG_ICON);
   const [name, setName] = useState('');
+  const [picking, setPicking] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
   async function add() {
@@ -80,9 +83,10 @@ function TagManager({ tags }: { tags: Tag[] }) {
       toast('That tag already exists');
       return;
     }
-    await saveTag({ id: uid(), name: n.slice(0, 40), emoji: emoji.trim().slice(0, 8) || '🏷️', serviceCharge: false, order: tags.length });
+    await saveTag({ id: uid(), name: n.slice(0, 40), icon, serviceCharge: false, order: tags.length });
     setName('');
-    setEmoji('');
+    setIcon(DEFAULT_TAG_ICON);
+    setPicking(false);
   }
 
   async function move(i: number, dir: -1 | 1) {
@@ -107,7 +111,7 @@ function TagManager({ tags }: { tags: Tag[] }) {
   return (
     <Group title="Tags">
       {tags.map((t, i) => (
-        <div key={t.id} className="flex items-center gap-2 px-3 py-2">
+        <div key={t.id} className="px-3 py-2">
           {editing === t.id ? (
             <TagEditor
               tag={t}
@@ -117,88 +121,129 @@ function TagManager({ tags }: { tags: Tag[] }) {
               }}
             />
           ) : (
-            <>
-              <button className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" onClick={() => setEditing(t.id)}>
-                <span className="text-lg">{t.emoji}</span>
+            <div className="flex items-center gap-2">
+              <button className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-left" onClick={() => setEditing(t.id)}>
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-2 text-ink-2">
+                  <TagIcon name={t.icon} size={17} />
+                </span>
                 <span className="truncate">{t.name}</span>
               </button>
               <div className="flex">
                 <IconBtn label="Move up" onClick={() => move(i, -1)} disabled={i === 0}>
-                  ↑
+                  <ArrowUp size={17} aria-hidden />
                 </IconBtn>
                 <IconBtn label="Move down" onClick={() => move(i, 1)} disabled={i === tags.length - 1}>
-                  ↓
+                  <ArrowDown size={17} aria-hidden />
                 </IconBtn>
                 <IconBtn label={`Delete ${t.name}`} onClick={() => remove(t)}>
-                  ✕
+                  <Trash2 size={17} aria-hidden />
                 </IconBtn>
               </div>
-            </>
+            </div>
           )}
         </div>
       ))}
       <form
-        className="flex items-center gap-2 px-3 py-2"
+        className="px-3 py-2"
         onSubmit={(e) => {
           e.preventDefault();
           add();
         }}
       >
-        <input
-          value={emoji}
-          onChange={(e) => setEmoji(e.target.value)}
-          placeholder="🏷️"
-          aria-label="New tag emoji"
-          maxLength={8}
-          className="min-h-11 w-14 rounded-xl border border-line bg-surface text-center outline-none focus:border-accent"
-        />
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="New tag"
-          aria-label="New tag name"
-          maxLength={40}
-          className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 outline-none focus:border-accent"
-        />
-        <button type="submit" disabled={!name.trim()} className="min-h-11 rounded-xl bg-accent px-4 font-semibold text-accent-ink disabled:opacity-40">
-          Add
-        </button>
+        <div className="flex items-center gap-2">
+          <IconChoice icon={icon} open={picking} onToggle={() => setPicking((p) => !p)} />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="New tag"
+            aria-label="New tag name"
+            maxLength={40}
+            className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 outline-none focus:border-accent"
+          />
+          <button type="submit" disabled={!name.trim()} className="min-h-11 rounded-xl bg-accent px-4 font-semibold text-accent-ink disabled:opacity-40">
+            Add
+          </button>
+        </div>
+        {picking && (
+          <IconPicker
+            value={icon}
+            onChange={(k) => {
+              setIcon(k);
+              setPicking(false);
+            }}
+          />
+        )}
       </form>
     </Group>
   );
 }
 
 function TagEditor({ tag, onDone }: { tag: Tag; onDone: (patch?: Partial<Tag>) => void }) {
-  const [emoji, setEmoji] = useState(tag.emoji);
+  const [icon, setIcon] = useState(tag.icon);
   const [name, setName] = useState(tag.name);
+  const [picking, setPicking] = useState(true);
   return (
     <form
-      className="flex w-full items-center gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         const n = name.trim();
-        onDone(n ? { name: n.slice(0, 40), emoji: emoji.trim().slice(0, 8) || tag.emoji } : undefined);
+        onDone(n ? { name: n.slice(0, 40), icon } : undefined);
       }}
     >
-      <input
-        value={emoji}
-        onChange={(e) => setEmoji(e.target.value)}
-        aria-label="Emoji"
-        maxLength={8}
-        className="min-h-11 w-14 rounded-xl border border-line bg-surface text-center outline-none focus:border-accent"
-      />
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        autoFocus
-        aria-label="Tag name"
-        maxLength={40}
-        className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 outline-none focus:border-accent"
-      />
-      <button type="submit" className="min-h-11 px-2 font-semibold text-accent">
-        Done
-      </button>
+      <div className="flex items-center gap-2">
+        <IconChoice icon={icon} open={picking} onToggle={() => setPicking((p) => !p)} />
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-label="Tag name"
+          maxLength={40}
+          className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 outline-none focus:border-accent"
+        />
+        <button type="submit" className="min-h-11 px-2 font-semibold text-accent">
+          Done
+        </button>
+      </div>
+      {picking && <IconPicker value={icon} onChange={setIcon} />}
     </form>
+  );
+}
+
+/** Button showing the chosen icon; opens the picker */
+function IconChoice({ icon, open, onToggle }: { icon: string; open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label="Choose icon"
+      className={`grid size-11 shrink-0 place-items-center rounded-xl border transition ${
+        open ? 'border-pick bg-pick text-pick-ink' : 'border-line bg-surface text-ink-2'
+      }`}
+    >
+      <TagIcon name={icon} size={19} />
+    </button>
+  );
+}
+
+function IconPicker({ value, onChange }: { value: string; onChange: (key: string) => void }) {
+  return (
+    <div className="mt-2 grid grid-cols-6 gap-1.5 rounded-xl bg-surface-2 p-2" role="radiogroup" aria-label="Icon">
+      {TAG_ICON_KEYS.map((k) => (
+        <button
+          key={k}
+          type="button"
+          role="radio"
+          aria-checked={value === k}
+          aria-label={k}
+          onClick={() => onChange(k)}
+          className={`grid aspect-square place-items-center rounded-lg transition ${
+            value === k ? 'bg-pick text-pick-ink' : 'text-ink-2 active:bg-surface'
+          }`}
+        >
+          <TagIcon name={k} size={19} />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -266,7 +311,15 @@ function DataSection() {
           {usage && ` · ${usage}`}
         </span>
         <span className={persisted ? 'text-ink-2' : 'text-covered'}>
-          {persisted === null ? '' : persisted ? '🔒 Protected storage' : '⚠︎ Storage may be cleared'}
+          {persisted === null ? null : persisted ? (
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck size={15} aria-hidden /> Protected storage
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5">
+              <TriangleAlert size={15} aria-hidden /> Storage may be cleared
+            </span>
+          )}
         </span>
       </div>
       {persisted === false && (
@@ -317,7 +370,7 @@ function Group({ title, note, children }: { title: string; note?: string; childr
   return (
     <section>
       <h2 className="mb-1.5 px-1 text-xs font-semibold tracking-wide text-muted uppercase">{title}</h2>
-      <div className="divide-y divide-line overflow-hidden rounded-2xl bg-surface shadow-sm">{children}</div>
+      <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">{children}</div>
       {note && <p className="mt-1.5 px-1 text-xs text-muted">{note}</p>}
     </section>
   );

@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { DEFAULT_SETTINGS, INCOME_SOURCES, THEMES, type Income, type IncomeSource, type Settings, type Tag, type Theme, type Txn } from './types';
 import { round2 } from './lib/calc';
 import { uid } from './lib/format';
+import { DEFAULT_TAG_ICON, TAG_ICON_KEYS } from './lib/icons';
 
 interface SettingRow {
   key: 'settings';
@@ -35,16 +36,16 @@ export const db = new ExpensiveDB();
 
 function defaultTags(): Tag[] {
   const list: [string, string, boolean][] = [
-    ['Food', '🍛', true],
-    ['Snacks', '🍪', false],
-    ['Transport', '🚌', false],
-    ['Clothes', '👕', false],
-    ['Bills', '🧾', false],
-    ['Health', '💊', false],
-    ['Fun', '🎬', false],
-    ['Other', '📦', false],
+    ['Food', 'utensils', true],
+    ['Snacks', 'cookie', false],
+    ['Transport', 'bus', false],
+    ['Clothes', 'shirt', false],
+    ['Bills', 'receipt', false],
+    ['Health', 'pill', false],
+    ['Fun', 'film', false],
+    ['Other', 'package', false],
   ];
-  return list.map(([name, emoji, serviceCharge], order) => ({ id: uid(), name, emoji, serviceCharge, order }));
+  return list.map(([name, icon, serviceCharge], order) => ({ id: uid(), name, icon, serviceCharge, order }));
 }
 
 /* ---------- hooks ---------- */
@@ -179,7 +180,7 @@ export function parseBackup(raw: unknown): Backup {
     .map((t, i) => ({
       id: str(t.id, 64),
       name: str(t.name, 40).trim(),
-      emoji: str(t.emoji, 8),
+      icon: TAG_ICON_KEYS.includes(t.icon as string) ? (t.icon as string) : DEFAULT_TAG_ICON,
       serviceCharge: t.serviceCharge === true,
       order: numOr(t.order, i),
     }))

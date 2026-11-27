@@ -1,3 +1,4 @@
+import { Delete } from 'lucide-react';
 import { useEffect } from 'react';
 
 export type KeyValue = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '.' | '+' | '−' | '×' | '÷' | '(' | ')' | '⌫' | 'C' | '=';
@@ -81,7 +82,7 @@ export function Keypad({ onKey, keyboard = true }: Props) {
             type="button"
             onClick={() => onKey(k)}
             aria-label={k === '⌫' ? 'Backspace' : k === 'C' ? 'Clear' : k}
-            className={`tabular h-11 rounded-xl text-xl font-medium transition active:scale-95 ${
+            className={`tabular grid h-11 place-items-center rounded-xl text-xl font-medium transition active:scale-95 ${
               k === '='
                 ? 'bg-accent text-accent-ink'
                 : isOp
@@ -91,7 +92,7 @@ export function Keypad({ onKey, keyboard = true }: Props) {
                     : 'bg-surface text-ink'
             } shadow-[0_1px_0_var(--border)]`}
           >
-            {k}
+            {k === '⌫' ? <Delete size={22} strokeWidth={1.8} aria-hidden /> : k}
           </button>
         );
       })}

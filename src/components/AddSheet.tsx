@@ -7,6 +7,7 @@ import type { Txn } from '../types';
 import { applyKey, Keypad, type KeyValue } from './Keypad';
 import { Sheet } from './Sheet';
 import { toast } from './Toast';
+import { TagIcon } from '../lib/icons';
 
 export interface Draft {
   /** existing record being edited, if any */
@@ -167,11 +168,11 @@ export function AddSheet({ draft, onClose, onDuplicate }: Props) {
                 type="button"
                 onClick={() => toggleTag(t.id)}
                 aria-pressed={on}
-                className={`min-h-10 rounded-full border px-3 text-sm transition ${
-                  on ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface text-ink'
+                className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-sm transition ${
+                  on ? 'border-pick bg-pick font-medium text-pick-ink' : 'border-line bg-surface text-ink'
                 }`}
               >
-                <span className="mr-1">{t.emoji}</span>
+                <TagIcon name={t.icon} size={16} />
                 {t.name}
               </button>
             );
@@ -183,11 +184,11 @@ export function AddSheet({ draft, onClose, onDuplicate }: Props) {
             onClick={() => setServiceCharge((v) => !v)}
             aria-pressed={scOn}
             className={`mt-3 flex min-h-11 w-full items-center justify-between rounded-xl border px-3 text-sm transition ${
-              scOn ? 'border-accent bg-accent/10' : 'border-dashed border-line'
+              scOn ? 'border-pick bg-pick/30' : 'border-dashed border-line'
             }`}
           >
             <span>
-              <span className="mr-1.5">🧾</span>Add {rate}% service charge
+              Add {rate}% service charge
             </span>
             <Switch on={scOn} />
           </button>
@@ -301,7 +302,7 @@ export function Switch({ on, color = 'accent' }: { on: boolean; color?: 'accent'
     <span
       aria-hidden
       className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition ${
-        on ? (color === 'covered' ? 'bg-covered' : 'bg-accent') : 'bg-line'
+        on ? (color === 'covered' ? 'bg-covered' : 'bg-positive') : 'bg-line'
       }`}
     >
       <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />

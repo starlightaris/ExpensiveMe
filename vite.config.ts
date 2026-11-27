@@ -35,6 +35,10 @@ function cspPlugin(): Plugin {
 export default defineConfig({
   // Relative base so the build works at any GitHub Pages path (user.github.io/<repo>/)
   base: './',
+  build: {
+    // Never inline fonts as data: URIs; the CSP only allows same-origin font files
+    assetsInlineLimit: (file) => (file.endsWith('.woff2') ? false : undefined),
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -42,7 +46,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-64.png', 'apple-touch-icon.png', 'logo-96.png'],
       manifest: {
         name: 'ExpensiveMe',
         short_name: 'ExpensiveMe',
@@ -51,8 +55,8 @@ export default defineConfig({
         scope: './',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#f6f6f4',
-        theme_color: '#f6f6f4',
+        background_color: '#f7ead7', // matches the logo's background so the launch screen is seamless
+        theme_color: '#f7f1e6',
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
@@ -60,7 +64,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,woff2}'],
         navigateFallback: 'index.html',
       },
     }),

@@ -1,7 +1,8 @@
 export interface Tag {
   id: string;
   name: string;
-  emoji: string;
+  /** key into TAG_ICONS (src/lib/icons.tsx) */
+  icon: string;
   /** Offer the "+service charge" chip when this tag is selected */
   serviceCharge: boolean;
   order: number;
@@ -28,10 +29,10 @@ export interface Txn {
 }
 
 export type IncomeSource = 'salary' | 'home' | 'other';
-export const INCOME_SOURCES: { id: IncomeSource; label: string; emoji: string }[] = [
-  { id: 'salary', label: 'Salary', emoji: '💼' },
-  { id: 'home', label: 'From home', emoji: '🏠' },
-  { id: 'other', label: 'Other', emoji: '✨' },
+export const INCOME_SOURCES: { id: IncomeSource; label: string }[] = [
+  { id: 'salary', label: 'Salary' },
+  { id: 'home', label: 'From home' },
+  { id: 'other', label: 'Other' },
 ];
 
 /** Money coming in. Kept apart from expenses: it never affects lifestyle cost. */

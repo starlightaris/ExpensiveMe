@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, THEMES, type Theme } from '../types';
 // only lets the very first paint use the right colors before the database has loaded.
 const KEY = 'expensiveme.theme';
 
-const BG = { light: '#f6f6f4', dark: '#121211' };
+const BG = { light: '#f7f1e6', dark: '#221d19' };
 const darkQuery = () => window.matchMedia?.('(prefers-color-scheme: dark)');
 
 export function cachedTheme(): Theme {

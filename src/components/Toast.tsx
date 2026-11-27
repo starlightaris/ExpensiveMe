@@ -42,7 +42,7 @@ export function ToastHost() {
         <span>{msg.text}</span>
         {msg.action && (
           <button
-            className="min-h-11 font-semibold text-[var(--mine)] brightness-125"
+            className="min-h-11 font-semibold text-pick"
             onClick={() => {
               msg.action!.run();
               setMsg(null);

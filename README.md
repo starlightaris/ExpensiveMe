@@ -14,7 +14,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # type-check + production build to dist/
 npm run preview    # serve the production build locally
-npm run icons      # regenerate the PNG app icons in public/
+npm run icons      # regenerate app icons in public/ from design/logo.jpg (needs Python + Pillow)
 ```
 
 Stack: Vite, React, TypeScript, Tailwind CSS v4, Dexie (IndexedDB), vite-plugin-pwa.

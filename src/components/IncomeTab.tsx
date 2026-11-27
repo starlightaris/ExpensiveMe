@@ -5,6 +5,8 @@ import { money, pct } from '../lib/format';
 import { round2 } from '../lib/calc';
 import { INCOME_SOURCES, type Income, type Txn } from '../types';
 import { PeriodPicker } from './PeriodPicker';
+import { TriangleAlert } from 'lucide-react';
+import { IncomeIcon } from '../lib/icons';
 
 interface Props {
   period: Period;
@@ -43,16 +45,14 @@ export function IncomeTab({ period, onPeriod, onAdd, onEdit }: Props) {
     <div className="space-y-4">
       <PeriodPicker period={period} onChange={onPeriod} kinds={['month', 'year']} />
 
-      <section className="rounded-3xl bg-surface p-5 shadow-sm">
+      <section className="hero rounded-3xl p-5">
         <Line label="Came in" value={money(cameIn, cur)} strong />
         {bySource.length > 0 && (
           <ul className="tabular mt-1 mb-1 space-y-0.5 pl-1 text-sm text-ink-2">
             {bySource.map((s) => (
               <li key={s.id} className="flex justify-between">
-                <span>
-                  <span className="mr-1.5" aria-hidden>
-                    {s.emoji}
-                  </span>
+                <span className="flex items-center gap-2">
+                  <IncomeIcon source={s.id} size={15} />
                   {s.label}
                 </span>
                 <span>{money(s.amount, cur)}</span>
@@ -69,7 +69,7 @@ export function IncomeTab({ period, onPeriod, onAdd, onEdit }: Props) {
       </section>
 
       {period.kind === 'year' ? (
-        <section className="rounded-3xl bg-surface p-5 shadow-sm">
+        <section className="rounded-3xl border border-line bg-surface p-5">
           <h2 className="mb-2 font-semibold">Month by month</h2>
           {months.length === 0 ? (
             <p className="text-sm text-muted">Nothing recorded {periodWord}.</p>
@@ -108,10 +108,7 @@ export function IncomeTab({ period, onPeriod, onAdd, onEdit }: Props) {
         loaded &&
         (sorted.length === 0 ? (
           <section className="rounded-3xl border border-dashed border-line p-8 text-center">
-            <p className="text-3xl" aria-hidden>
-              💰
-            </p>
-            <p className="mt-2 font-medium">No income recorded {periodWord}</p>
+            <p className="font-medium">No income recorded {periodWord}</p>
             <p className="mt-1 text-sm text-ink-2">Add your salary and any money from home to see what’s left over.</p>
             <button onClick={onAdd} className="mt-4 min-h-11 rounded-full bg-accent px-5 font-semibold text-accent-ink">
               Add income
@@ -120,14 +117,14 @@ export function IncomeTab({ period, onPeriod, onAdd, onEdit }: Props) {
         ) : (
           <section>
             <h2 className="mb-1.5 px-1 text-xs font-semibold tracking-wide text-ink-2 uppercase">Income {periodWord}</h2>
-            <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface shadow-sm">
+            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
               {sorted.map((i) => {
                 const s = sourceInfo(i.source);
                 return (
                   <li key={i.id}>
                     <button onClick={() => onEdit(i)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left">
-                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2 text-lg" aria-hidden>
-                        {s.emoji}
+                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2 text-ink-2">
+                        <IncomeIcon source={i.source} size={18} />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">{i.note || s.label}</span>
@@ -179,13 +176,20 @@ function Balance({ cameIn, spent, currency }: { cameIn: number; spent: number; c
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="font-semibold">{over ? 'Overspent' : 'Left over'}</span>
-        <span className={`tabular text-3xl font-bold tracking-tight ${over ? 'text-danger' : ''}`}>{money(Math.abs(left), currency)}</span>
+        <span className={`tabular text-3xl font-bold tracking-tight ${over ? 'text-covered' : ''}`}>{money(Math.abs(left), currency)}</span>
       </div>
       <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
-        <div className={`h-full rounded-full ${over ? 'bg-danger' : 'bg-mine'}`} style={{ width: `${share * 100}%` }} />
+        <div className={`h-full rounded-full ${over ? 'bg-covered' : 'bg-positive'}`} style={{ width: `${share * 100}%` }} />
       </div>
       <p className="mt-2 text-xs text-ink-2">
-        {over ? `⚠︎ You spent ${money(-left, currency)} more than came in.` : `You’ve spent ${pct(spent, cameIn)} of what came in.`}
+        {over ? (
+          <span className="inline-flex items-center gap-1.5">
+            <TriangleAlert size={14} aria-hidden />
+            You spent {money(-left, currency)} more than came in.
+          </span>
+        ) : (
+          `You’ve spent ${pct(spent, cameIn)} of what came in.`
+        )}
       </p>
     </div>
   );

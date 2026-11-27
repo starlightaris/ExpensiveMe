@@ -1,3 +1,4 @@
+import { Calculator, House, Plus, ReceiptText, Settings as SettingsIcon, Wallet } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AddSheet, type Draft } from './components/AddSheet';
@@ -68,11 +69,14 @@ export default function App() {
     <div className="mx-auto min-h-dvh max-w-md">
       <header className="pt-safe sticky top-0 z-20 bg-bg/90 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4">
-          <h1 className="text-xl font-bold tracking-tight">{title}</h1>
+          <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-tight">
+            {tab === 'home' && <img src="logo-96.png" alt="" width={32} height={32} className="size-8 rounded-[10px]" />}
+            {title}
+          </h1>
           <button
             onClick={() => setCalcOpen(true)}
             aria-label="Open calculator"
-            className="grid size-11 place-items-center rounded-full bg-surface text-ink-2 shadow-sm active:scale-95"
+            className="grid size-11 place-items-center rounded-full border border-line bg-surface text-ink-2 active:scale-95"
           >
             <CalcIcon />
           </button>
@@ -115,7 +119,7 @@ export default function App() {
       )}
 
       {/* Tab bar */}
-      <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur" aria-label="Main">
+      <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur" aria-label="Main">
         <div className="mx-auto grid h-16 max-w-md grid-cols-4">
           <TabBtn active={tab === 'home'} onClick={() => go('home')} label="Home" icon={<HomeIcon />} />
           <TabBtn active={tab === 'list'} onClick={() => go('list')} label="Transactions" icon={<ListIcon />} />
@@ -167,46 +171,18 @@ function TabBtn({ active, onClick, label, icon }: { active: boolean; onClick: ()
     <button
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className={`flex flex-col items-center justify-center gap-0.5 text-[11px] ${active ? 'font-semibold text-accent' : 'text-muted'}`}
+      className={`flex flex-col items-center justify-center gap-1 text-[11px] ${active ? 'font-bold text-ink' : 'font-medium text-muted'}`}
     >
-      {icon}
+      <span className={`grid h-7 w-12 place-items-center rounded-full transition ${active ? 'bg-pick text-pick-ink' : ''}`}>{icon}</span>
       {label}
     </button>
   );
 }
 
-const svg = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-
-const HomeIcon = () => (
-  <svg {...svg} aria-hidden>
-    <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
-  </svg>
-);
-const ListIcon = () => (
-  <svg {...svg} aria-hidden>
-    <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
-  </svg>
-);
-const WalletIcon = () => (
-  <svg {...svg} aria-hidden>
-    <rect x="3" y="6" width="18" height="14" rx="2.5" />
-    <path d="M6.5 6 15 3.2a1 1 0 0 1 1.3.9V6M16.5 13h.01" />
-  </svg>
-);
-const GearIcon = () => (
-  <svg {...svg} aria-hidden>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-  </svg>
-);
-const CalcIcon = () => (
-  <svg {...svg} aria-hidden>
-    <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
-    <path d="M8.5 6.5h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5v3.5M8.5 18h.01M12 18h.01" />
-  </svg>
-);
-const PlusIcon = () => (
-  <svg {...svg} width={26} height={26} strokeWidth={2.5} aria-hidden>
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
+const ICON = { size: 20, strokeWidth: 1.8, 'aria-hidden': true } as const;
+const HomeIcon = () => <House {...ICON} />;
+const ListIcon = () => <ReceiptText {...ICON} />;
+const WalletIcon = () => <Wallet {...ICON} />;
+const GearIcon = () => <SettingsIcon {...ICON} />;
+const CalcIcon = () => <Calculator {...ICON} />;
+const PlusIcon = () => <Plus size={26} strokeWidth={2.2} aria-hidden />;

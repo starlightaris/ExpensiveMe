@@ -7,6 +7,7 @@ import { INCOME_SOURCES, type Income, type IncomeSource } from '../types';
 import { applyKey, Keypad, type KeyValue } from './Keypad';
 import { Sheet } from './Sheet';
 import { toast } from './Toast';
+import { IncomeIcon } from '../lib/icons';
 
 interface Props {
   /** existing entry being edited; undefined for a new one */
@@ -117,12 +118,10 @@ export function IncomeSheet({ income, onClose }: Props) {
               aria-checked={source === s.id}
               onClick={() => setSource(s.id)}
               className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-xl border text-sm transition ${
-                source === s.id ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface text-ink'
+                source === s.id ? 'border-pick bg-pick font-medium text-pick-ink' : 'border-line bg-surface text-ink'
               }`}
             >
-              <span className="text-lg" aria-hidden>
-                {s.emoji}
-              </span>
+              <IncomeIcon source={s.id} size={20} />
               {s.label}
             </button>
           ))}

@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { periodAround, periodLabel, shiftPeriod, today, type Period, type PeriodKind } from '../lib/dates';
 
 const KINDS: { kind: PeriodKind; label: string }[] = [
@@ -83,7 +84,7 @@ export function PeriodPicker({ period, onChange, kinds }: Props) {
             aria-label="Previous period"
             className="grid size-11 place-items-center rounded-full text-xl text-ink-2 disabled:invisible"
           >
-            ‹
+            <ChevronLeft size={20} aria-hidden />
           </button>
           <button
             onClick={() => shiftable && onChange(periodAround(period.kind, today()))}
@@ -91,7 +92,10 @@ export function PeriodPicker({ period, onChange, kinds }: Props) {
             title={current ? undefined : 'Back to current'}
           >
             {periodLabel(period)}
-            {shiftable && !current && <span className="ml-2 text-xs font-normal text-accent">Today ↺</span>}
+            {shiftable && !current && <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-accent">
+                <RotateCcw size={12} aria-hidden />
+                Today
+              </span>}
           </button>
           <button
             onClick={() => onChange(shiftPeriod(period, 1))}
@@ -99,7 +103,7 @@ export function PeriodPicker({ period, onChange, kinds }: Props) {
             aria-label="Next period"
             className="grid size-11 place-items-center rounded-full text-xl text-ink-2 disabled:invisible"
           >
-            ›
+            <ChevronRight size={20} aria-hidden />
           </button>
         </div>
       )}

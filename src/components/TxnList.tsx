@@ -7,6 +7,8 @@ import type { Tag, Txn } from '../types';
 import { PeriodPicker } from './PeriodPicker';
 import { toast } from './Toast';
 import { Dot } from './TrendChart';
+import { Banknote } from 'lucide-react';
+import { TagIcon } from '../lib/icons';
 
 export type WhoFilter = 'all' | 'mine' | 'covered';
 export interface ListFilter {
@@ -90,7 +92,8 @@ export function TxnList({ period, onPeriod, filter, onFilter, onEdit }: Props) {
         <span className="mx-1 w-px shrink-0 bg-line" />
         {tags.map((t) => (
           <Chip key={t.id} on={filter.tag === t.id} onClick={() => set({ tag: filter.tag === t.id ? null : t.id })}>
-            {t.emoji} {t.name}
+            <TagIcon name={t.icon} size={15} />
+            {t.name}
           </Chip>
         ))}
         <Chip on={filter.tag === '__none'} onClick={() => set({ tag: filter.tag === '__none' ? null : '__none' })}>
@@ -123,7 +126,7 @@ export function TxnList({ period, onPeriod, filter, onFilter, onEdit }: Props) {
                 <h3 className="font-semibold tracking-wide text-ink-2 uppercase">{dayHeading(g.date)}</h3>
                 <span className="text-muted">{money(gt.lifestyle, cur)}</span>
               </div>
-              <ul className="overflow-hidden rounded-2xl bg-surface shadow-sm">
+              <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
                 {g.items.map((t) => (
                   <SwipeRow key={t.id} onDelete={() => remove(t)} onOpen={() => onEdit(t)}>
                     <Row t={t} tags={t.tagIds.map((id) => tagById.get(id)).filter((x): x is Tag => !!x)} currency={cur} />
@@ -148,8 +151,8 @@ function Row({ t, tags, currency }: { t: Txn; tags: Tag[]; currency: string }) {
   const title = t.note || tags.map((x) => x.name).join(', ') || 'Expense';
   return (
     <div className="flex items-center gap-3 px-3 py-2.5">
-      <div className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2 text-lg" aria-hidden>
-        {tags[0]?.emoji ?? '💸'}
+      <div className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2 text-ink-2" aria-hidden>
+        {tags[0] ? <TagIcon name={tags[0].icon} size={18} /> : <Banknote size={18} strokeWidth={1.8} />}
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{title}</p>
@@ -176,8 +179,8 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
     <button
       onClick={onClick}
       aria-pressed={on}
-      className={`min-h-9 shrink-0 rounded-full border px-3 text-sm whitespace-nowrap transition ${
-        on ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-ink-2'
+      className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm whitespace-nowrap transition ${
+        on ? 'border-pick bg-pick font-medium text-pick-ink' : 'border-line bg-surface text-ink-2'
       }`}
     >
       {children}
